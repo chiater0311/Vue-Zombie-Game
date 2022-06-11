@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Next Door</title>
+    
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Trirong">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=New+Tegomin&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons"rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link href="css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
+    <script src="js/bootstrap.min.js" type="text/javascript"></script>
+
+    <link href="image/zombie_icon.png" rel="shortcut icon">
+    <link href="css/app.css" rel="stylesheet">
+</head>
+<body>
+
+    <main id="main" class="landing" style="overflow: auto;" v-cloak>
+        <!-- <transition name="fade" mode="out-in" appear>
+            <router-view></router-view>
+        </transition> -->
+
+        <router-view>
+            <transition 
+                enter-active-class="animate__animated animate__fadeInRight"
+                leave-active-class="animate__animated animate__fadeOutRight"
+                mode="out-in"
+                name="fade">
+            </transition>
+        </router-view>
+
+        <div id="move" class="move" v-on:click="press" style="margin: auto;text-align: center;" @click.prevent="redirect">
+           <span>
+            <router-link id="press_login" style="font-family: 'New Tegomin', serif;color: white;text-decoration: none;" to="/login">Press to Start Game</a>
+           </span>
+        </div>
+
+        <!-- <div style="width: 50px;height: 50px;background: white;border-radius: 50px;padding: 13px;position: fixed;bottom: 0;right: 0;margin-bottom: 20px;margin-right: 20px;" @click.prevent="mute">
+            <span id="volume" class="material-icons">
+                volume_up
+            </span>
+        </div> -->
+    </main>
+
+    <!-- <audio loop muted autoplay id="videomain">
+        <source src="BGM/landing.mp3" type="audio/mp3">
+    </audio> -->
+
+    <!-- JavaScript Section -->
+    <script src="js/jquery.slim.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.17.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.17.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.17.1/firebase-storage.js"></script>
+    <script src="js/vue.js"></script>
+    <script src="js/vue-router.js"></script>
+    <script src="js/vuefire.js"></script>
+    <script src="js/jquery.slim.js"></script>
+    <script src="js/app.js"></script>
+
+
+    <script>
+
+        // TODO: Setup firebase and vuefire -----------------------------------
+        firebase.initializeApp({
+            projectId:"ass-demo-e3da7",
+            storageBucket:"gs://ass-demo-e3da7.appspot.com",
+        });
+
+        const real_ref = firebase.storage().ref('image');
+        
+        const db = firebase.firestore();
+        const ref = db.collection('users');
+        // const button = "BGM/button.mp3";
+        // const landing_bgm = "BGM/landing.mp3";
+        // bgm = new Audio(landing_bgm);
+    
+        // $(document).ready(function() { 
+        //     new Audio(landing_bgm).play();
+        // });
+
+        Vue.use(Vuefire.firestorePlugin);
+
+        // Vue router ---------------------------------------------------------
+        const router = new VueRouter({
+            routes: [
+                // { path: '/home'  , component: load('home')   },
+                { path: '/signup', component: load('signup') },
+                { path: '/login', component: load('login') },
+                // TODO: Add route param
+                // { path: '/update/:id', component: load('update') },
+                // { path: '*', redirect: '/home' }
+            ]
+        });
+
+        // Vue root component -------------------------------------------------
+        const app = new Vue({
+            router,
+            el: '#main',
+            data: {
+                show:true,
+                users: [],
+                email:'',
+                password:"",
+            },
+            // TODO: Vuefire
+            firestore:{
+                students : ref
+            },
+            methods:{
+                login(){
+                    // new Audio(button).play();
+
+                    ref.where("email", "==", this.email)
+                    .get()
+                    .then((querySnapshot) => {
+                        
+                        if(querySnapshot.size > 0)
+                        {
+                            querySnapshot.forEach((doc) => {
+                            // doc.data() is never undefined for query doc snapshots
+                            console.log(doc.id, " => ", doc.data());
+                            
+                            });
+                            
+                        }else{
+                            alert("Account Not Exists");
+                        }
+                      
+                    })
+                    .catch((error) => {
+                        console.log("Error getting documents: ", error);
+                    });
+                   
+                },
+                validateEmail(e) {
+                    let el = e.target;
+                    let email= el.value;
+
+                    el.setCustomValidity('');
+                    if(el.validity.valid){
+                        alert("hu");
+                        let s = this.$root.users.find(s => s.email == email);
+                        if(s)
+                        {
+                            alert("Exists User, Please Login.");
+                            el.setCustomValidity('Exists User, Please Login.');
+                        }else{
+                            alert("No");
+                        }
+                    }
+                },
+                redirect(){
+                    new Audio(button).play();
+                    $("#volume").text("volume_off");
+                    bgm.play();
+                    bgm.loop=true;
+                    location = "#/login";
+                },
+                press(){
+                    $('#move').hide();
+                },
+                mute(){
+                    bgm.play();
+                    bgm.loop=true;
+                    let u = $("#volume").html();
+
+                    // alert(u);
+
+                    if(u == "volume_off"){
+                        $("#volume").text("volume_up");
+                        bgm.muted = true;
+                    }else{
+                        $("#volume").text("volume_off");
+                        bgm.muted = false;
+                    }
+                }
+            },
+
+            // Life-cycle methods
+            created() {
+                
+            }
+        });
+
+        $(document).ready(function() {
+            if (window.location.hash.indexOf("login") > -1) {
+                $('#move').hide();
+            }
+            if (window.location.hash.indexOf("signup") > -1) {
+                $('#move').hide();
+            }
+        });
+
+
+    </script>
+
+    <style>
+        .fade-enter-from,
+        .fade-leave-to{
+            opacity: 0;
+        }
+
+        .fade-enter-active,
+        .fade-leave-active{
+            transition: opacity 0.5s ease-out;
+        }
+
+        /* Extra small devices (phones, 600px and down) */
+        @media only screen and (max-width: 600px) {
+            .move{
+                bottom: 0;
+                position: fixed;
+                padding-bottom: 100px;
+                width: 100%;
+                text-align: center;
+            }
+            #press_login{
+                text-align: center;
+                font-size: xx-large;
+            }
+            .login{
+                padding-top: 25% !important;
+                width: max-content !important;
+            }
+            .signup{
+                padding-top: 25% !important;
+                width: max-content !important;
+            }
+            #game_header{
+                font-size: xxx-large !important;
+            }
+
+            .game_title{
+                font-size: xx-large !important;
+            }
+
+            .option{
+                font-size: medium !important;
+            }
+
+            .fadePage{
+                width: fit-content;
+            }
+            .signup{
+                padding-top: 25% !important;
+                width: max-content !important;
+            }
+        }
+
+        /* Small devices (portrait tablets and large phones, 600px and up) */
+        @media only screen and (min-width: 600px) {
+            .move{
+                margin-top: 60% !important;
+            }
+        }
+
+        /* Medium devices (landscape tablets, 768px and up) */
+        @media only screen and (min-width: 768px) {
+            .move{
+                bottom: 0;
+                position: fixed;
+                padding-bottom: 100px;
+                width: 100%;
+                text-align: center;
+            }
+            .login{
+                padding-top: 10% !important;
+                width: max-content !important;
+            }
+            .signup{
+                padding-top: 10% !important;
+                width: max-content !important;
+            }
+            #press_login{
+                text-align: center;
+                font-size: 36px;
+            }
+
+            #game_header{
+                font-size: 5vw !important;
+                line-height: 2vw;
+            }
+        }
+
+        /* Large devices (laptops/desktops, 992px and up) */
+        @media only screen and (min-width: 992px) {
+            .move{
+                bottom: 0;
+                position: fixed;
+                padding-bottom: 100px;
+                width: 100%;
+                text-align: center;
+            }
+            .login{
+                padding-top: 10% !important;
+                width: max-content !important;
+            }
+            .signup{
+                padding-top: 10% !important;
+                width: max-content !important;
+            }
+            #press_login{
+                text-align: center;
+                font-size: 45px;
+            }
+        }
+
+        /* Extra large devices (large laptops and desktops, 1200px and up) */
+        @media only screen and (min-width: 1200px) {
+            .move{
+                bottom: 0;
+                position: fixed;
+                padding-bottom: 100px;
+                width: 100%;
+                text-align: center;
+            }
+            .login{
+                padding-top: 10% !important;
+                width: max-content !important;
+            }
+            .signup{
+                padding-top: 10% !important;
+                width: max-content !important;
+            }
+            #press_login{
+                text-align: center;
+                font-size: 50px;
+            }
+        }
+
+        .loading{
+            background-color: black;
+            background-image: url(/thenextdoor.github.io/image/loading.jpeg);
+            /* background-image: url("/Users/kengboongoh/Sites/thenextdoor.github.io/image/loading.gif"); */
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-size: cover;
+            width: 100%;
+        }
+
+        .loading2 {
+                background-color: black;
+                /* background-image: url("/Users/kengboongoh/Sites/thenextdoor.github.io/image/loading.gif"); */
+                background-image: url(/thenextdoor.github.io/image/loading.gif);
+                background-repeat: no-repeat;
+                /* background-attachment: fixed; */
+                background-size: cover;
+                width: 100%;
+        }
+    </style>
+    
+
+</body>
+</html>

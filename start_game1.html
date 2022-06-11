@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Trirong">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=New+Tegomin&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="css/app.css">
+    <title>Game Store</title>
+    <style>
+        main {
+            display: grid;
+            gap: 10px;
+            grid-template-columns: 350px 1fr;
+        }
+
+        #map {
+            border: 1px solid #333;
+        }
+    </style>
+</head>
+
+<body class="landing2 fadePage" style="grid-template-rows: auto auto 1fr auto;">
+    <div id="loader" class="center"></div>
+    <header class="fadePage"
+        style="    display: flex; background: none;justify-content: space-between;    padding: 5px 20px;">
+        <div style="display: flex;align-items: center;">
+            <div style="display: inline-block;"><img id="photo"
+                    style="height: 50px;width: 50px;border-radius: 50px;object-fit: cover;"
+                    src="image/no_picture.png" /></div>
+            <div style="display: inline-block;    padding-left: 10px;">
+                <h5 id="username"
+                    style="color: white;font-size: 16px;font-family: 'New Tegomin', serif;letter-spacing: 2px;"></h5>
+            </div>
+        </div>
+        <h1
+            style="font-size: 3vw;text-align: center;font-family: 'New Tegomin', serif;    color: #AA1111;letter-spacing: 5px;background:none;    padding-bottom: 10px;">
+            Game Store</h1>
+        <div style="display: flex;align-items: center;">
+            <span class="material-icons" style="    color: white;display: inline-block;">
+                logout
+            </span>
+        </div>
+    </header>
+
+    <!-- Vue -->
+    <main id="app" v-cloak>
+        <div id="panel" class="fadePage cover_bck" style="border: 9px double #808080;border-radius: 12px;">
+            <div style="text-align: center;padding: 10px;    border-bottom: 1px solid white;">
+                <a
+                    style="    text-decoration: none;font-family: 'New Tegomin', serif;color: white;letter-spacing: 2px;font-size: 20px;">Bag</a>
+            </div>
+            <div style="display: flex;">
+                <div class="option2" @click.prevent="open_item"><a class="option2_title">Items</a></div>
+                <div class="option2" @click.prevent="open_supply"><a class="option2_title">Supplement</a></div>
+            </div>
+
+            <div id="supplements" hidden>
+
+                <div v-for="m of bag">
+                    <!-- <img :src="m.icon">
+                    <span class="radar_text" v-if="m.found">Found</span>
+                    <span class="radar_text" v-else>{{ m.distance | number(0) }} meters</span> -->
+                    <div class="items" v-if="m.category ==='supplyment' && m.count > 0">
+                        <div style="width: 50px;"><img width="40px" height="40px" v-bind:src="'image/'+m.type+'.gif'">
+                        </div>
+                        <div style="display: flex;align-items: center;width: 150px;"><a
+                                class="items_title">{{m.type}}</a></div>
+                        <div style="display: flex;align-items: center;width: 50px;"><a
+                                class="items_title">x{{m.count}}</a></div>
+                        <div style="padding-top: 6px;display: flex;align-content: center;"><button class="items_btn"
+                                @click.prevent="use_item(m.type)" :data-type="m.type">Use</button></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="item_panel">
+
+                <div v-for="m of bag">
+                    <!-- <img :src="m.icon">
+                    <span class="radar_text" v-if="m.found">Found</span>
+                    <span class="radar_text" v-else>{{ m.distance | number(0) }} meters</span> -->
+                    <div class="items" v-if="m.category ==='item' && m.count > 0">
+                        <div style="width: 50px;"><img width="40px" height="40px" v-bind:src="'image/'+m.type+'.gif'">
+                        </div>
+                        <div style="display: flex;align-items: center;width: 150px;"><a
+                                class="items_title">{{m.type}}</a></div>
+                        <div style="display: flex;align-items: center;width: 50px;"><a
+                                class="items_title">x{{m.count}}</a></div>
+                        <div style="padding-top: 6px;display: flex;align-content: center;"><button class="items_btn"
+                                @click.prevent="use_item(m.type)" :data-type="m.type">Use</button></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div id="map"></div>
+
+        <div hidden>
+            <div id="game_panel">
+
+                <div>
+                    <div>
+                        <div style="display: inline-block;"><img height="50px" src="image/love.gif" /></div>
+                        <div style="display: inline-flex;vertical-align: middle;">
+                            <div style="width: 200px;height:10px;border: 1px solid black;border-radius: 50px;">
+                                <div id="health"
+                                    style="width: 10%;height:100%;background-color: red;border-radius: 50px;"></div>
+                                <div style="text-align: center;">
+                                    <h4 id="health_status"
+                                        style="line-height: 0;padding-top: 5px;font-size: 14px;font-family: 'New Tegomin', serif;">
+                                        0/300</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="display: inline-block;"></div>
+                    </div>
+                    <div>
+                        <div style="display: inline-block;"><img height="50px" src="image/coin.gif" /></div>
+                        <div style="vertical-align: middle; display: inline-flex;">
+                            <h4 id="coins"
+                                style="font-weight: 700;font-size: 18px;color: black;font-family: 'New Tegomin', serif;">
+                                x0</h4>
+                        </div>
+                    </div>
+                    <div>
+                        <div style="display: inline-block;"><img height="50px" width="50px" src="image/weapon.gif" />
+                        </div>
+                        <div style="vertical-align: middle; display: inline-flex;">
+                            <h4 id="damage"
+                                style="font-weight: 700;font-size: 18px;color: black;font-family: 'New Tegomin', serif;">
+                            </h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div hidden>
+            <div id="radar" hidden>
+                <div>
+                    <div style="display: inline-block;"><img height="150px" src="image/radar.gif" /></div>
+                    <div style="display: inline-flex;position: fixed;">
+                        <div
+                            style="padding: 4px;margin-left: 10px;width: 160px;height: 150px;border: 3px solid white;border-radius: 10px;overflow: auto;background-color: grey;">
+                            <div v-for="m of markers">
+                                <img width="36px" height="36px" v-if="m.type === 'door' || m.type === 'key'"
+                                    :src="m.icon.url">
+                                <span class="radar_text" v-if="m.type === 'key' && m.found">Found</span>
+                                <span class="radar_text" v-else-if="m.type === 'door' || m.type === 'key' ">{{
+                                    m.distance | number(0) }} meters</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div hidden>
+            <div id="message">
+                <div>
+                    <div style="text-align: left;">
+                        <h4 id="text_status"
+                            style="line-height: 0;padding-top: 5px;font-size: 24px;font-family: 'New Tegomin', serif;color: white;">
+                            You got the Potion.</h4>
+                    </div>
+                    <div class="blink" style="position: absolute;right: 0;padding: 20px;bottom: 0;">
+                        <h4
+                            style="line-height: 0;padding-top: 5px;font-size: 16px;font-family: 'New Tegomin', serif;color: white;">
+                            Press Enter to dismiss...</h4>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- TODO(1): Add drawing library -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=&libraries=geometry,drawing"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.17.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.17.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.17.1/firebase-storage.js"></script>
+    <script src="js/jquery.slim.js"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script src="js/vuefire.js"></script>
+    <script src="js/vue.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+
+        $(document).ready(function () {
+            // setHealth(300,400);
+            // setCoin(0);
+            // setDmg(50);
+            reload();
+        });
+
+        // TODO: Setup firebase and vuefire -----------------------------------
+        firebase.initializeApp({
+            projectId: 'prac7a-demo',
+            storageBucket: "gs://prac7a-demo.appspot.com",
+        });
+
+        const real_ref = firebase.storage().ref('image');
+
+        const db = firebase.firestore();
+        const user_ref = db.collection('users');
+        const bag_ref = db.collection('bag');
+        const game_ref = db.collection('game');
+        const game_marker_ref = db.collection('game_marker');
+        const refmarker = firebase.firestore().collection('markers');
+        const refmap = firebase.firestore().collection('maps');
+
+
+        const audio1 = new Audio('BGM/coin.mp3');
+        const audio2 = new Audio("BGM/found.mp3")
+
+        const vm = new Vue({
+            el: '#app',
+            data: {
+                id: '',
+                user: [],
+                bag_id: "",
+                game_id: "",
+                game: [],
+                bag: [],
+                markers: [],
+                win: false,
+                poly: [],
+                level1: [],
+                level2: [],
+                level3: [],
+                // step: 0,
+                // total_coin:0,
+                // capacity:0,
+                // health:0,
+            },
+            methods: {
+                move(x, y) {
+                    // TODO(4): Pan the map (move the player)
+                    //          Prevent moving out of bounds
+
+                    let c1 = map.getCenter();
+                    map.panBy(x * 10, y * 10);
+                    let c2 = map.getCenter();
+
+                    // if(bounds.contains(c2)){
+                    //     player.setPosition(c2);
+                    // }else{
+                    //     map.setCenter(c1);
+                    // }
+
+                    let inside = gm.geometry.poly.containsLocation(c2, vm.poly)
+
+                    if (inside) {
+                        circle.setCenter(c2);
+                        circle.setRadius(vm.game.torch_radius);
+                        player.setPosition(c2);
+                    }
+                    else {
+                        map.setCenter(c1);
+                    }
+
+
+                    // TODO(5): Update marker's distance and visibility
+                    for (let m of vm.markers.filter(m => !m.found)) {
+                        let a = player.getPosition();
+                        let b = m.getPosition();
+                        m.distance = gm.geometry.spherical.computeDistanceBetween(a, b);
+
+                        let distance = gm.geometry.spherical.computeDistanceBetween(a, b);
+
+                        if (distance <= vm.game.torch_radius) {
+                            m.setVisible(true);
+                        } else {
+                            m.setVisible(false);
+                        }
+
+
+                        // TODO
+                        if (m.distance < 10 && m.type == "Coin") {
+
+                            audio1.play();
+                            m.found = true;
+                            m.setVisible(false);
+                            vm.game.coin++;
+                            game_ref.doc(vm.game_id).update({ coin: vm.game.coin });
+                            $("#coins").text("x" + vm.game.coin);
+                            // status_animation(m.type);
+                        } else if (m.distance < 10 && (m.type == "Potion" || m.type == "weapon" || m.type == "torchlight" || m.type == "radar" || m.type == "Love" || m.type == "health")) {
+                            audio2.play();
+                            m.found = true;
+                            m.setVisible(false);
+                            status_animation(m.type);
+
+                            modifyBag(m.type);
+
+                            // let cat = "";
+
+                            // if(m.type == "Potion")
+                            // {
+                            //     cat ="supplyment";
+
+                            // }else{
+                            //     cat ="item";
+                            // }
+
+
+
+                            // if (vm.bag.some(e => e.type === m.type)) {
+                            //     // alert("yes");
+                            //     for(var i = 0; i < vm.bag.length; i++) {
+                            //         if (vm.bag[i].type == m.type) {
+                            //             let t = vm.bag[i].type;
+                            //             vm.bag[i].count++;
+                            //             bag_ref.doc(vm.bag_id).update({t:vm.bag[i].count});
+                            //         }
+                            //     }
+
+                            // }else{
+                            //     alert("HI");
+                            //     // let t = m.type;
+                            //     // // vm.bag.t = 1;
+                            //     // bag_ref.doc(vm.bag_id).update({t:1});
+
+                            // //     let b = {
+                            // //         category:cat,
+                            // //         type: m.type,
+                            // //         heal:20,
+                            // //         dmg:-50,
+                            // //         count:1,
+                            // //     };
+
+                            // // vm.bag.push(b);
+
+                            // }
+
+                            console.log(vm.bag);
+
+
+                        } else if (m.distance < 10 && m.type == "zombie") {
+                            let buckle_blood = m.damage - vm.game.dmg;
+                            let tempHealth = vm.game.health;
+                            //m.ishit = false;
+                            ///audio2.play();
+                            if (!m.ishit) {
+                                if (buckle_blood >= 0) {
+                                    // audio hit
+                                    m.ishit = true;
+                                    tempHealth -= buckle_blood;
+                                    if (tempHealth < 0) {
+                                        vm.game.health = 0;
+                                        //audio game over
+                                        alert("GAME OVER!!");
+                                        
+                                    } else {
+                                        vm.game.health = tempHealth;
+                                    }
+                                    game_ref.doc(vm.game_id).update({ health: vm.game.health });
+                                    let width = ((vm.game.health / vm.game.capacity) * 100) + "%";
+
+
+                                    $("#health").css("width", width);
+                                    $("#health_status").text(vm.game.health + "/" + vm.game.capacity);
+                                    // m.found = true;
+                                }
+                                else {
+                                    //audio kill
+                                    m.found = true;
+                                    m.setVisible(false);
+                                }
+                            }
+
+
+
+                            console.log("hellp0");
+
+                        }
+                        else if (m.distance > 10 && m.type == "zombie") {
+                            // m.found = false;
+                            m.ishit = false;
+
+                        }
+                        else if (m.distance < 10 && m.type == "key") {
+                            audio2.play();
+                            m.found = true;
+                            m.setVisible(false);
+                            status_animation(m.type);
+                            vm.game.isKey = true;
+                            game_ref.doc(vm.game_id).update({ isKey: true });
+
+                        } else if (m.distance < 10 && m.type == "door") {
+                            audio2.play();
+                            m.found = true;
+                            //m.setVisible(false);
+
+                            if (vm.game.isKey) {
+                                //successful audio
+                                alert("Congratulations!!! You successfully going through to the level 2!");
+                                vm.poly = vm.level2;
+                                new_level = vm.poly.getPath().getArray()[0];
+                                circle.setCenter(new_level);
+                                player.setPosition(new_level);
+                                console.log(vm.poly.getPath().getArray()[0]);
+                                map.panTo(new_level);
+                            }
+                            else {
+                                alert("You haven't found the key!")
+                            }
+                        }
+                        // m.ishit = false;
+                    }
+
+                    // TODO(7): If all markers (hearts) found, alert and reload
+                    //          You found all hearts ❤️ !!!
+                    if (vm.markers.every(m => m.found) && vm.win == false) {
+                        vm.win = true;
+                        setTimeout(() => {
+                            alert(`You found all hearts ❤️ !!! (${vm.step}) steps`);
+                            location = location;
+                        }, 1000);
+                    }
+
+                },
+
+                test() {
+                    // $("#health").css("width","80%");
+                    setHealth();
+                },
+                test2() {
+                    // $("#health").css("width","80%");
+                    modifyHealth();
+                },
+                open_item() {
+                    $("#supplements").hide();
+                    $("#item_panel").fadeIn(500);
+                },
+                open_supply() {
+                    $("#item_panel").hide();
+                    $("#supplements").fadeIn(500);
+                },
+                use_item(item) {
+                    console.log(item);
+                    if (item == "weapon2") {
+                        useItem(item);
+
+                    } else if (item == "Potion" || item == "Love" || item == "weapon" || item == "radar" || item == "torchlight" || item == "health" || item == "key") {
+                        useSupplyment(item);
+                    }
+                }
+            },
+            mounted() {
+
+                // Authentication();
+                // TODO(8): Handle keyboard shortcuts
+                // Escape or 0 --> null, 1 --> circle, 2 --> rectangle, 3 --> polygon
+                $(document).keydown(e => {
+                    if (vm.win) return;
+
+                    vm.game.step++;
+                    game_ref.doc(vm.game_id).update({ step: vm.game.step });
+
+                    switch (e.key) {
+                        case 'ArrowLeft': vm.move(-1, 0); break;
+                        case 'ArrowRight': vm.move(+1, 0); break;
+                        case 'ArrowUp': vm.move(0, -1); break;
+                        case 'ArrowDown': vm.move(0, +1); break;
+                        case 'Enter': hideStatus(); break;
+                    }
+                });
+
+            },
+            created() {
+
+                Authentication();
+
+                refmap.get()
+                    .then(function (querySnapshot) {
+
+                        let count = 0;
+                        querySnapshot.forEach(function (doc) {
+                            // console.log(doc.data());
+
+                            const { polygon } = doc.data() || {};
+
+                            if (polygon) {
+                                if (count == 0) {
+                                    vm.level1 = new gm.Polygon({
+                                        map,
+                                        draggable: false,
+                                        id: doc.id,
+                                        path: gm.geometry.encoding.decodePath(doc.data().polygon),
+                                        strokeColor: 'black',
+                                        fillColor: 'black'
+                                    });
+
+                                    vm.poly = vm.level1;
+
+                                    count++;
+
+                                } else if (count == 1) {
+                                    vm.level2 = new gm.Polygon({
+                                        map,
+                                        draggable: false,
+                                        id: doc.id,
+                                        path: gm.geometry.encoding.decodePath(doc.data().polygon),
+                                        strokeColor: 'black',
+                                        fillColor: 'black'
+                                    });
+                                    count++;
+
+                                } else if (count == 2) {
+                                    vm.level3 = new gm.Polygon({
+                                        map,
+                                        draggable: false,
+                                        id: doc.id,
+                                        path: gm.geometry.encoding.decodePath(doc.data().polygon),
+                                        strokeColor: 'black',
+                                        fillColor: 'black'
+                                    });
+                                    count++;
+
+                                }
+
+                            }
+                        });
+                    });
+
+            }
+        });
+
+        // ====================================================================
+        // Google Maps
+        // ====================================================================
+
+        const gm = google.maps;
+
+        const center = { lat: 41.420615, lng: 2.143519 };
+
+        const map = new gm.Map($('#map')[0], {
+            center,
+            zoom: 18,
+            disableDefaultUI: true,
+            clickableIcons: false,
+            // gestureHandling:'none',
+        });
+
+        const game_panel = $('#game_panel')[0];
+        map.controls[gm.ControlPosition.TOP_LEFT].push(game_panel);
+
+        const radar = $('#radar')[0];
+        map.controls[gm.ControlPosition.TOP_RIGHT].push(radar);
+
+        const message = $('#message')[0];
+        map.controls[gm.ControlPosition.BOTTOM_LEFT].push(message);
+
+        const player = new gm.Marker({
+            position: center,
+            map,
+            icon: { url: `${vm.user.character}`, scaledSize: new gm.Size(150, 150) },
+            animation: gm.Animation.DROP
+
+        });
+
+        const circle = new gm.Circle({
+            map,
+            strokeColor: 'red',
+            strokeWeight: 10,
+            // fillColor:"red",
+            // fillOpacity:0,
+        });
+
+        // TODO(1): Calculate bounds & draw rectangle
+        // NOTE: Position used must be LatLng object
+        // const sw = gm.geometry.spherical.computeOffset(center,2000,225);
+        // const ne = gm.geometry.spherical.computeOffset(center,2000,45);
+        // const bounds = new gm.LatLngBounds(sw,ne);
+        // const rect = new gm.Rectangle({
+        //     map,
+        //     bounds,
+        //     strokeColor :'red',
+        //     strokeWeight:10,
+        //     fillOpacity:0,
+        // });
+
+        // gm.event.addListenerOnce(map, 'bounds_changed', e => {
+        //     let types = ['Coin', 'Potion', 'Weapon','Torch','Torch','Torch','Radar',"Love"];
+
+        //     // TODO(2): Drop markers (hearts) on map within the bounds (random position)
+        //     let sp  = bounds.toSpan();
+        //     for(let img of types){
+        //         let p = {
+        //             lat:sw.lat() + sp.lat() * Math.random(),
+        //             lng:sw.lng() + sp.lng() * Math.random(),
+        //         };
+        //         addMarker(p,img);
+        //     }
+
+        //     for(i = 0; i < 10; i++)
+        //     {
+        //         let p = {
+        //             lat:sw.lat() + sp.lat() * Math.random(),
+        //             lng:sw.lng() + sp.lng() * Math.random(),
+        //         };
+        //         addMarker(p,"Coin");
+        //     }
+
+        //     vm.move(0, 0);
+        // });
+
+        function addMarker(position, type, name, dmg, heal, id) {
+
+            let icon = {
+                url: `image/${type}.gif`, // url
+                scaledSize: new gm.Size(70, 70), // scaled size
+            };
+
+            let m = new gm.Marker({
+                map,
+                animation: gm.Animation.DROP,
+                draggable: true,
+                // TODO(6): Add options --> id, position, label and image
+                id: id,
+                position: position,
+                name: name,
+                icon: icon,
+                type: type,
+                damage: dmg,
+                heal: heal,
+                iskey: false,
+                distance: 0, // custom property
+                found: false,
+                visible: false,
+                ishit: false
+
+            });
+
+            vm.markers.push(m);
+        }
+
+        function reload() {
+            let game = new URL(location).searchParams.get('game');
+            let id = new URL(location).searchParams.get('id');
+
+            if (game == "new") {
+
+                // console.log("new");
+
+                bag_ref.where("user_id", "==", id).get()
+                    .then(function (querySnapshot) {
+                        if (querySnapshot.size > 0) {
+                            // alert("yes");
+                            querySnapshot.forEach(function (doc) {
+                                doc.ref.delete()
+                                // .then(() => {
+                                // setBag(id);
+                                // })
+                            });
+
+                            setBag(id);
+                        } else {
+                            setBag(id);
+                        }
+
+                    });
+
+                game_ref.where("user_id", "==", id).get()
+                    .then(function (querySnapshot) {
+                        if (querySnapshot.size > 0) {
+                            querySnapshot.forEach(function (doc) {
+                                doc.ref.delete().then(() => {
+                                    setGame(id);
+                                });
+                            });
+                        } else {
+                            setGame(id);
+                        }
+                        // alert("HI3");
+
+                        clearMarker();
+
+                    });
+
+
+                // setHealth(300,400);
+                // setCoin(0);
+                // setDmg(50);
+
+
+                // setBag(id);
+
+            } else if (game == "continue") {
+
+                let bag_id = "";
+                let game_id = "";
+
+                bag_ref.where("user_id", "==", id).get()
+                    .then(function (querySnapshot) {
+                        querySnapshot.forEach(function (doc) {
+                            // vm.bag_id = doc.id;
+                            // vm.bag = doc.data();
+                            // console.log(vm.bag);
+                            vm.bag.push(doc.data());
+                        });
+                    })
+
+                game_ref.where("user_id", "==", id).get()
+                    .then(function (querySnapshot) {
+                        querySnapshot.forEach(function (doc) {
+                            vm.game_id = doc.id;
+                            vm.game = doc.data();
+                            console.log(vm.game);
+
+                            if (vm.game.radar_visibility == true) {
+                                $("#radar").show();
+                            }
+
+                            setHealth(vm.game.health, vm.game.capacity);
+                            setCoin(vm.game.coin);
+                            setDmg(0);
+
+                            loadMarker();
+                        });
+                    })
+
+                // console.log("continue");
+
+            } else {
+
+                location = "index.html";
+            }
+
+        }
+
+        function Authentication() {
+            let id = new URL(location).searchParams.get('id');
+
+            if (!id) {
+                location = "index.html";
+            }
+            let user = user_ref.doc(id);
+
+            user.get().then((doc) => {
+                if (doc.exists) {
+                    console.log("Document data:", doc.data());
+
+                    vm.user = doc.data();
+                    vm.id = id;
+
+                    if (vm.user.photo == "image/profile_image.jpeg") {
+                        $("#photo").attr('src', vm.user.photo);
+
+                    } else {
+                        var img = real_ref.child(vm.user.photo);
+
+                        img.getDownloadURL()
+                            .then((url) => {
+                                vm.user.photo = url;
+                                $("#photo").attr('src', url);
+                            })
+                    }
+
+                    $("#username").text("Hi , " + vm.user.username);
+
+                    player.icon.url = vm.user.character;
+                    // alert(vm.user.photo);
+
+                    // console.log(vm.user);
+                    // console.log(vm.id);
+                }
+                else {
+                    // doc.data() will be undefined in this case
+                    // console.log("No such document!");
+                    location = "index.html";
+                }
+            }).catch((error) => {
+                console.log("Error getting document:", error);
+            });
+
+        }
+
+        function setCoin(count) {
+            $("#coins").text("x" + count);
+
+        }
+
+        function setDmg(new_dmg) {
+
+            vm.game.dmg = vm.game.dmg + new_dmg;
+
+            game_ref.doc(vm.game_id).update({ dmg: vm.game.dmg });
+            $("#damage").text("Dmg : " + vm.game.dmg);
+
+        }
+
+        function setBag(id) {
+            bag_ref.doc().set({
+                user_id: id,
+                category: "supplyment",
+                type: "potion",
+                heal: 100,
+                dmg: 0,
+                count: 0,
+            });
+
+            bag_ref.doc().set({
+                user_id: id,
+                category: "item",
+                type: "weapon",
+                heal: 0,
+                dmg: 100,
+                count: 0,
+            });
+
+            bag_ref.doc().set({
+                user_id: id,
+                category: "item",
+                type: "key",
+                heal: 0,
+                dmg: 0,
+                count: 0,
+            });
+
+            bag_ref.doc().set({
+                user_id: id,
+                category: "item",
+                type: "torchlight",
+                heal: 0,
+                dmg: 0,
+                count: 0,
+            });
+
+            bag_ref.doc().set({
+                user_id: id,
+                category: "item",
+                type: "radar",
+                heal: 0,
+                dmg: 0,
+                count: 0,
+            });
+
+            bag_ref.doc().set({
+                user_id: id,
+                category: "supplyment",
+                type: "love",
+                heal: 0,
+                dmg: 0,
+                count: 0,
+            });
+
+            bag_ref.doc().set({
+                user_id: id,
+                category: "supplyment",
+                type: "health",
+                heal: 500,
+                dmg: 0,
+                count: 0,
+            });
+
+            bag_ref.where("user_id", "==", id).get()
+                .then(function (querySnapshot) {
+                    querySnapshot.forEach(function (doc) {
+                        vm.bag.push(doc.data());
+                        console.log(doc.data());
+                    });
+                })
+        }
+
+        function modifyBag(type) {
+
+            if (vm.bag.some(e => e.type === type)) {
+                for (var i = 0; i < vm.bag.length; i++) {
+                    if (vm.bag[i].type == type) {
+                        let t = vm.bag[i].type;
+                        vm.bag[i].count++;
+                        let total = vm.bag[i].count;
+
+
+                        bag_ref.where("user_id", "==", vm.id).get()
+                            .then(function (querySnapshot) {
+                                if (querySnapshot.size > 0) {
+                                    querySnapshot.forEach(function (doc) {
+                                        if (doc.data().type == type) {
+                                            console.log(doc.id);
+                                            bag_ref.doc(doc.id).update({ count: total });
+                                        }
+                                    });
+                                }
+                            });
+                    }
+                }
+            }
+
+            // if(type == "Potion")
+            // {
+
+            //     vm.bag.potion = vm.bag.potion + 1;
+            //     bag_ref.doc(vm.bag_id).update({potion:vm.bag.potion});
+
+            // }else if(type == "Torch")
+            // {
+            //     vm.bag.torch = vm.bag.torch + 1;
+            //     alert(vm.bag.torch);
+            //     bag_ref.doc(vm.bag_id).update({torch:vm.bag.torch})
+            //     ;
+            // }else if(type == "Sword")
+            // {
+            //     vm.bag.sword = vm.bag.sword + 1;
+            //     alert(vm.bag.sword);
+            //     bag_ref.doc(vm.bag_id).update({sword:vm.bag.sword});
+            // }
+
+        }
+
+        function setGame(id) {
+            game_ref.doc().set({
+                user_id: id,
+                health: 200,
+                capacity: 400,
+                dmg: 0,
+                step: 0,
+                coin: 0,
+                location: 0,
+                radar_visibility: false,
+                isKey: false,
+                torch_radius: 80,
+            });
+
+            game_ref.where("user_id", "==", id).get()
+                .then(function (querySnapshot) {
+                    querySnapshot.forEach(function (doc) {
+                        vm.game_id = doc.id;
+                        vm.game = doc.data();
+                        console.log(vm.game);
+
+                        setHealth(vm.game.health, vm.game.capacity);
+                        setCoin(vm.game.coin);
+                        setDmg(0);
+                    });
+                })
+        }
+
+
+        function setHealth(heatlh, capacity) {
+
+            vm.capacity = capacity;
+            vm.health = heatlh;
+
+            let heal = heatlh;
+            let width = ((heal / capacity) * 100) + "%";
+
+
+            $("#health").css("width", width);
+            $("#health_status").text(heal + "/" + capacity);
+
+        }
+
+        function modifyHealth(dmg, heal, new_capacity) {
+
+            // let dmg = dmg;
+            // let heal = heal;
+            let health = vm.game.health
+            let capacity = vm.game.capacity + new_capacity;
+
+            // alert(capacity);
+            vm.game.health = health + dmg + heal;
+            vm.game.capacity = capacity;
+            // alert(vm.game.health);
+
+            if (vm.game.health >= capacity) {
+                // alert(capacity + " " + capacity);
+                vm.game.health = capacity;
+            }
+
+            game_ref.doc(vm.game_id).update({ health: vm.game.health });
+            game_ref.doc(vm.game_id).update({ capacity: vm.game.capacity });
+
+            let width = ((vm.game.health / capacity) * 100) + "%";
+
+            $("#health").css("width", width);
+            $("#health_status").text(vm.game.health + "/" + capacity);
+        }
+
+        function status_animation(text) {
+
+            $("#message").show();
+
+            var $el = $('#text_status'),
+                text = "You got the " + text + ".",
+                speed = 300; //ms
+
+            $el.empty();
+
+            var wordArray = text.split(' '),
+                i = 0;
+
+            INV = setInterval(function () {
+                if (i >= wordArray.length - 1) {
+                    clearInterval(INV);
+                    // $("#message").hide();
+                }
+                $el.append(wordArray[i] + ' ');
+                i++;
+            }, speed);
+
+
+        }
+
+        function useItem() {
+
+        }
+
+        function useSupplyment(type) {
+
+            if (vm.bag.some(e => e.type === type)) {
+                for (var i = 0; i < vm.bag.length; i++) {
+                    if (vm.bag[i].type == type) {
+                        // let t = vm.bag[i].type;
+                        // vm.bag[i].count++;
+                        window.total = 0;
+
+                        bag_ref.where("user_id", "==", vm.id).get()
+                            .then(function (querySnapshot) {
+                                if (querySnapshot.size > 0) {
+                                    querySnapshot.forEach(function (doc) {
+                                        if (doc.data().type == "potion" && type == "potion") {
+                                            let dmg = doc.data().dmg;
+                                            let heal = doc.data().heal;
+                                            let capacity = 0;
+                                            modifyHealth(dmg, heal, capacity);
+                                            // modifyHealth(vm.bag[i].dmg,vm.bag[i].heal);
+
+                                            total = doc.data().count - 1;
+
+                                            bag_ref.doc(doc.id).update({ count: doc.data().count - 1 });
+
+                                            for (var i = 0; i < vm.bag.length; i++) {
+                                                if (vm.bag[i].type == "Potion") {
+
+                                                    vm.bag[i].count = total;
+                                                }
+                                            }
+                                        } if (doc.data().type == "health" && type == "health") {
+                                            let dmg = doc.data().dmg;
+                                            let heal = doc.data().heal;
+                                            let capacity = 0;
+                                            modifyHealth(dmg, heal, capacity);
+                                            // modifyHealth(vm.bag[i].dmg,vm.bag[i].heal);
+
+                                            total = doc.data().count - 1;
+
+                                            bag_ref.doc(doc.id).update({ count: doc.data().count - 1 });
+
+                                            for (var i = 0; i < vm.bag.length; i++) {
+                                                if (vm.bag[i].type == "health") {
+
+                                                    vm.bag[i].count = total;
+                                                }
+                                            }
+                                        } else if (doc.data().type == "radar" && type == "radar") {
+                                            $("#radar").show();
+
+                                            total = doc.data().count - 1;
+                                            bag_ref.doc(doc.id).update({ count: doc.data().count - 1 });
+                                            game_ref.doc(vm.game_id).update({ radar_visibility: true });
+                                            vm.game.radar_visibility == true;
+
+                                            for (var i = 0; i < vm.bag.length; i++) {
+                                                if (vm.bag[i].type == "radar") {
+
+                                                    vm.bag[i].count = total;
+                                                }
+                                            }
+
+                                        }
+                                        else if (doc.data().type == "Love" && type == "Love") {
+
+                                            let total = doc.data().count - 1;
+                                            bag_ref.doc(doc.id).update({ count: total });
+
+                                            modifyHealth(0, 0, 200);
+
+                                            for (var i = 0; i < vm.bag.length; i++) {
+                                                if (vm.bag[i].type == "Love") {
+
+                                                    vm.bag[i].count = total;
+                                                }
+                                            }
+                                        }
+                                        else if (doc.data().type == "torchlight" && type == "torchlight") {
+
+                                            let total = doc.data().count - 1;
+                                            bag_ref.doc(doc.id).update({ count: total });
+
+                                            modifyRadius();
+
+                                            for (var i = 0; i < vm.bag.length; i++) {
+                                                if (vm.bag[i].type == "torchlight") {
+
+                                                    vm.bag[i].count = total;
+                                                }
+                                            }
+                                        }
+                                        else if (doc.data().type == "weapon" && type == "weapon") {
+
+                                            let total = doc.data().count - 1;
+                                            bag_ref.doc(doc.id).update({ count: total });
+
+                                            setDmg(200);
+
+                                            for (var i = 0; i < vm.bag.length; i++) {
+                                                if (vm.bag[i].type == "weapon") {
+
+                                                    vm.bag[i].count = total;
+                                                }
+                                            }
+                                        }
+                                        else if (doc.data().type == "key" && type == "key") {
+
+                                            let total = doc.data().count - 1;
+                                            bag_ref.doc(doc.id).update({ count: total });
+
+                                            setDmg(200);
+
+                                            for (var i = 0; i < vm.bag.length; i++) {
+                                                if (vm.bag[i].type == "key") {
+
+                                                    vm.bag[i].count = total;
+                                                }
+                                            }
+                                        }
+                                    });
+                                }
+                            });
+
+                        // console.log(window.total);
+
+                    }
+                }
+            }
+
+            // if (vm.bag.some(e => e.type === item)) {
+
+            //     for(var i = 0; i < vm.bag.length; i++) {
+            //             if (vm.bag[i].type == "Potion") {
+
+            //                 let dmg = vm.bag[i].dmg;
+            //                 let heal = vm.bag[i].heal; 
+            //                 modifyHealth(dmg,heal);
+
+            //                 vm.bag[i].count--;
+
+            //                 // if(vm.bag[i].count == 0)
+            //                 // {
+            //                 //     alert("Finish");
+            //                 //     // vm.bag.slice(i).remove();
+            //                 // }
+
+
+            //             }else if(vm.bag[i].type == "Love")
+            //             {
+            //                 vm.capacity = vm.capacity + 100;
+
+            //             }
+            //     }
+
+            // }
+
+        }
+
+        function modifyRadius() {
+            vm.game.torch_radius = vm.game.torch_radius + 50;
+        }
+
+        function hideStatus() {
+            $("#message").hide();
+        }
+
+        function loadMarker() {
+            game_marker_ref.where("userid", "==", vm.id).get()
+                .then(function (querySnapshot) {
+                    querySnapshot.forEach(function (doc) {
+                        // console.log(doc.data());
+
+                        // let sp  = bounds.toSpan();
+                        let p = {
+                            lat: doc.data().position.lat,
+                            lng: doc.data().position.lng,
+                        };
+                        addMarker(p, doc.data().type, doc.data().name, doc.data().damage, doc.data().heal, doc.id);
+
+                    });
+                });
+        }
+
+        function storeMarker() {
+            refmarker.get()
+                .then(function (querySnapshot) {
+                    querySnapshot.forEach(function (doc) {
+                        // console.log(doc.data());
+
+                        // let sp  = bounds.toSpan();
+                        let p = {
+                            lat: doc.data().position.lat,
+                            lng: doc.data().position.lng,
+                        };
+                        // addMarker(p,doc.data().type,doc.data().name,doc.data().damage,doc.data().heal,doc.id);
+
+                        game_marker_ref.doc().set({
+                            gameid: vm.game_id,
+                            userid: vm.id,
+                            position: p,
+                            name: doc.data().name,
+                            icon: `image/${doc.data().name}.gif`,
+                            type: doc.data().type,
+                            damage: doc.data().damage,
+                            heal: doc.data().heal,
+                            isKey: false,
+                            isVisible: true,
+                        });
+
+                        // for(i = 0; i < 10; i++)
+                        // {
+                        //     let p = {
+                        //         lat:sw.lat() + sp.lat() * Math.random(),
+                        //         lng:sw.lng() + sp.lng() * Math.random(),
+                        //     };
+                        //     addMarker(p,"Coin");
+                        // }
+
+                        // vm.move(0, 0);
+                    });
+
+                    loadMarker();
+                });
+        }
+
+        function clearMarker() {
+
+            // alert("HI4");
+
+            game_marker_ref.where("userid", "==", vm.id).get()
+                .then(function (querySnapshot) {
+                    if (querySnapshot.size > 0) {
+                        // alert("yes");
+                        querySnapshot.forEach(function (doc) {
+
+
+                            doc.ref.delete();
+                            // .then(() => {
+                            // setBag(id);
+                            // })
+                        });
+
+                        storeMarker();
+                    } else {
+                        // alert("HI");
+                        storeMarker();
+                    }
+
+                });
+        }
+
+    </script>
+</body>
+
+</html>

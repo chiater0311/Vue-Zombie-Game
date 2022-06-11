@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/app.css">
+    <link href="https://fonts.googleapis.com/css2?family=New+Tegomin&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons"rel="stylesheet">
+    <title>The Next Door : Admin Panel</title>
+    <link href="image/zombie_icon.png" rel="shortcut icon">
+    <style>
+        main {
+            display: grid;
+            gap: 10px;
+            grid-template-rows: auto 1fr;
+            grid-template-columns: 250px 1fr;
+            grid-template-areas: 'panel map'
+                'items map';
+            overflow: auto;
+        }
+
+        #panel {
+            grid-area: panel;
+        }
+
+        #markerbox {
+            background-color: #fff;
+            border: 1px solid #999;
+            border-radius: 5px;
+            margin-left: 260px;
+            padding: 5px;
+            font-size: 16px;
+            position: absolute;
+        }
+
+        #markerbox img {
+            width: 24px;
+        }
+
+        #markerbox * {
+            vertical-align: middle;
+        }
+
+        #map {
+            grid-area: map;
+            border: 1px solid #333;
+        }
+
+        #items {
+            grid-area: items;
+            overflow-y: scroll;
+        }
+
+        .item {
+            border: 1px solid #666;
+            padding: 2px;
+            margin-bottom: 2px;
+            cursor: pointer;
+            position: relative;
+            border-radius: 2px;
+        }
+
+        .item:hover {
+            background-color: #ccc;
+        }
+
+        .item img {
+            border: 1px solid #666;
+            width: 37px;
+            height: 37px;
+            float: left;
+            margin-right: 2px;
+        }
+
+        .item div {
+            background-color: #666;
+            color: #fff;
+            padding: 2px 4px;
+            border-radius: 2px;
+            width: 150px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .item small {
+            display: block;
+        }
+
+        .item input {
+            position: absolute;
+            top: 50%;
+            right: 4px;
+            transform: translate(0, -50%);
+            display: none;
+        }
+
+        .item:hover input {
+            display: block;
+        }
+
+        form img {
+            display: block;
+            border: 1px solid #999;
+            width: 100px;
+            height: 100px;
+            cursor: pointer;
+        }
+
+        .level_btn{
+            border-radius: 10px;
+            background-color: burlywood;
+        }
+        
+        .marker_item{
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+
+<body style="display: grid;grid-template-rows: auto auto 1fr auto;">
+    <header style="border: 1px solid slategrey;background: lightslategrey;">
+        <h1>The Next Door : Admin Panel</h1>
+    </header>
+
+    <nav>
+
+    </nav>
+
+    <!-- Vue ----------------------------------------------------------------->
+    <main id="app" v-cloak>
+        <div id="panel">
+            <div style="display: flex;justify-content: space-around;margin-bottom: 10px;border-bottom: 3px solid slategrey;padding-bottom: 10px;">
+                <button class="level_btn" @click="panto1"> Level 1 </button>
+                <button class="level_btn" @click="panto2"> Level 2 </button>
+                <button class="level_btn" @click="panto3"> Level 3 </button>
+            </div>
+            <div style="    display: flex;justify-content: space-around;">
+                <h5> {{ markers.length }} marker(s)</h5>
+                <button class="level_btn" @click="removeAll">Remove All</button>
+            </div>
+        </div>
+
+        <div id="items" style="    border: 3px solid slategrey;">
+            <div class="item" v-for="m of markers" @click="panTo(m)">
+                <img :src="m.icon.url">
+                <div>
+                    {{ m.name }}
+                </div>
+                <small>
+                    {{ m.position.lat() | number(6) }},
+                    {{ m.position.lng() | number(6) }}
+                </small>
+                <input type="image" src="image/remove.png" @click.stop="remove(m)">
+            </div>
+        </div>
+
+        <div id="map"></div>
+
+        <div id="markerbox">
+            <div style=" padding: 10px;">
+                <p><input class="marker_item" type="radio" id="weapon" name="marker" value="weapon" checked>  Weapon</p>
+                <p><input class="marker_item" type="radio" id="health" name="marker" value="health" checked>  Health</p>
+                <p><input class="marker_item" type="radio" id="love" name="marker" value="love" checked>  Love</p>
+                <p><input class="marker_item" type="radio" id="potion" name="marker" value="potion" checked>  Potion</p>
+                <p><input class="marker_item" type="radio" id="zombie1" name="marker" value="zombie">  Zombie 1</p>
+                <p><input class="marker_item" type="radio" id="zombie2" name="marker" value="zombie2">  Zombie 2</p>
+                <p><input class="marker_item" type="radio" id="zombie3" name="marker" value="zombie3">  Zombie 3</p>
+                <p><input class="marker_item" type="radio" id="door" name="marker" value="door">  Door</p>
+                <p><input class="marker_item" type="radio" id="key" name="marker" value="key">  Key</p>
+                <p><input class="marker_item" type="radio" id="torchlight" name="marker" value="torchlight">  Torchlight</p>
+                <p><input class="marker_item" type="radio" id="radar2" name="marker" value="radar">  Radar</p>
+                <p><input class="marker_item" type="radio" id="shop" name="marker" value="shop">  Shop</p>
+            </div>
+        </div>
+
+        <div hidden>
+            <form id="info" @submit.prevent="save">
+                <div>
+                    <label>Name: </label>
+                    <input v-model.trim="name" id="name" required @keydown.esc="cancel">
+                    <br>
+                    <label>Heal: </label>
+                    <input v-model="heal" id="heal" type="number">
+                    <br>
+                    <label>Damage: </label>
+                    <input v-model="damage" id="damage" type="number">
+                    <br>
+                </div>
+                <!-- <label>
+                    <input type="file" hidden @change="change">
+                    <img :src="image">
+                </label> -->
+                <div>
+                    <button>Save</button>
+                    <button @click.prevent="cancel">Cancel</button>
+                </div>
+            </form>
+        </div>
+
+        <div hidden>
+            <form id="shopmenu" @submit.prevent="saveShop">
+                <div>
+                    <label>Damage: </label>
+                    <input v-model="buydmg" id="buydmg" type="number" required @keydown.esc="cancel">
+                    <br>
+                    <label>Capacity: </label>
+                    <input v-model="buycapacity" id="buycapacity" type="number" required>
+                    <br>
+                    <label>Health: </label>
+                    <input v-model="buyhealth" id="buyhealth" type="number" required>
+                    <br>
+                </div>
+                <!-- <label>
+                    <input type="file" hidden @change="change">
+                    <img :src="image">
+                </label> -->
+                <div>
+                    <button>Save</button>
+                    <button @click.prevent="cancel">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script src="https://www.gstatic.com/firebasejs/7.17.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.17.1/firebase-firestore.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=&libraries=geometry,drawing"></script>
+    <script src="js/jquery.slim.js"></script>
+    <script src="js/vue.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        // ====================================================================
+        // Firebase 
+        // ====================================================================
+
+        firebase.initializeApp({
+            // TODO(1): Firebase project id
+            projectId: 'ass-demo-e3da7'
+        });
+
+        // TODO(2): Reference to 'markers' collection
+        const ref = firebase.firestore().collection('markers');
+        const refmap = firebase.firestore().collection('maps');
+        const refshop = firebase.firestore().collection('shop');
+        // ====================================================================
+        // Vue
+        // ====================================================================
+
+        const vm = new Vue({
+            el: '#app',
+            data: {
+                markers: [],
+                id: '',
+                name: '',
+                icon: '',
+                heal: '',
+                damage: '',
+                buydmg: '',
+                buycapacity: '',
+                buyhealth: '',
+                isKey: false,
+                polygons: [],
+                shopid: 'shopmenu'
+            },
+            methods: {
+                removeAll() {
+                    // TODO(9): Firebase --> DELETE ALL
+                    vm.markers.forEach(m => ref.doc(m.id).delete());
+                },
+                remove(m) {
+                    // TODO(10): Firebase --> DELETE
+                    ref.doc(m.id).delete();
+                },
+                cancel() {
+                    // TODO(15): Close info window
+                    info.close();
+                    shopmenu.close();
+                },
+                change(e) {
+                    // TODO(16): Resize image to dataURL
+                    let f = e.target.files[0];
+
+                    crop(f, 100, 100, 'dataURL', 'image/webp')
+                        .then(dataURL => vm.image = dataURL);
+
+                    e.target.value = '';
+                },
+                save() {
+                    // TODO(17): Firebase --> UPDATE --> close info window
+                    ref.doc(shopid).update({
+                        name: vm.name,
+                        heal: vm.heal,
+                        damage: vm.damage
+                    });
+
+                    info.close();
+                },
+                saveShop() {
+                    // TODO(17): Firebase --> UPDATE --> close info window
+                    refshop.doc("shopmenu").update({
+                        buycapacity: vm.buycapacity,
+                        buydmg: vm.buydmg,
+                        buyhealth: vm.buyhealth
+                    });
+
+                    shopmenu.close();
+                },
+                panTo(m) {
+                    console.log(m.getPosition());
+                    map.panTo(m.getPosition());
+                    m.setAnimation(gm.Animation.BOUNCE);
+                    setTimeout(() => m.setAnimation(null), 3000);
+
+                    // TODO(18): Open info window --> click on marker
+                    gm.event.trigger(m, 'click');
+                },
+                panto1() {
+                    console.log(vm.polygons[0].getPath().getArray()[0].toLocaleString());
+                    map.panTo(vm.polygons[0].getPath().getArray()[0]);
+                },
+                panto2() {
+                    map.panTo(vm.polygons[1].getPath().getArray()[0]);
+                },
+                panto3() {
+                    map.panTo(vm.polygons[2].getPath().getArray()[0]);
+                }
+            },
+            created() {
+                // TODO(4): Firebase --> detect changes
+                ref.onSnapshot(snap => {
+                    snap.docChanges().forEach(change => {
+                        const { type, doc } = change;
+
+                        // TODO(5): Record added --> add marker
+                        if (type == 'added') {
+                            addMarker(doc.id, doc.data());
+                        }
+
+                        // TODO(8): Record removed --> remove marker
+                        if (type == 'removed') {
+                            let m = vm.markers.find(m => m.id == doc.id);
+                            m.setMap(null);
+                            let i = vm.markers.indexOf(m);
+                            vm.markers.splice(i, 1);
+                        }
+
+                        // TODO(12): Record modified --> modify marker
+                        if (type == 'modified') {
+                            let m = vm.markers.find(m => m.id == doc.id);
+                            let data = doc.data();
+                            m.setOptions({
+                                position: data.position,
+                                name: data.name,
+                                type: data.type,
+                                icon: { url: data.icon, scaledSize: new gm.Size(70, 70) },
+                                heal: data.heal,
+                                damage: data.damage,
+                                isKey: data.isKey,
+                                isVisible: data.isVisible,
+                            });
+                        }
+                    });
+                }),
+                    refmap.onSnapshot(snap => {
+                        snap.docChanges().forEach(change => {
+                            const { type, doc } = change;
+
+                            // TODO(5): Record added --> add map
+                            if (type == 'added') {
+                                addPolygon(doc.id, doc.data());
+                            }
+
+                            // TODO(8): Record removed --> remove map
+                            if (type == 'removed') {
+                                let p = vm.polygons.find(p => p.id == doc.id);
+                                p.setMap(null);
+                                let i = vm.polygons.indexOf(p);
+                                vm.polygons.splice(i, 1);
+                            }
+
+                            // TODO(12): Record modified --> modify map
+                            if (type == 'modified') {
+                                let p = vm.polygons.find(p => p.id == doc.id);
+                                let data = doc.data();
+                                p.setOptions({
+                                    map,
+                                    draggable: false,
+                                    id: p.id,
+                                    path: gm.geometry.encoding.decodePath(data.polygon),
+                                    strokeColor: 'black',
+                                    fillColor: 'black'
+                                });
+
+                                checkisInside();
+                            }
+                        });
+                    }),
+                    refshop.get()
+                        .then(function (querySnapshot) {
+                            querySnapshot.forEach(function (doc) {
+                                vm.buycapacity = doc.data().buycapacity;
+                                vm.buyhealth = doc.data().buyhealth;
+                                vm.buydmg = doc.data().buydmg;
+                            });
+                        });
+            }
+
+
+        });
+
+        // ====================================================================
+        // Google Maps
+        // ====================================================================
+
+        const gm = google.maps;
+
+        const center = { lat: 41.420615, lng: 2.143519 };
+
+        const map = new gm.Map($('#map')[0], {
+            center,
+            zoom: 16,
+            disableDefaultUI: true,
+            clickableIcons: false,
+            disableDoubleClickZoom: true
+        });
+
+        const mgr = new gm.drawing.DrawingManager({
+            map,
+            //drawingControl: false,
+            drawingControlOptions: {
+                drawingModes: ['polygon', 'marker'],
+                position: gm.ControlPosition.TOP_RIGHT,
+            },
+            drawingMode: null,
+            polygonOptions: { strokeColor: 'black', fillColor: 'black' },
+            marketOptions: { aniamtion: gm.Animation.DROP, draggable: true }
+        });
+
+        mgr.addListener('polygoncomplete', o => {
+            o.setMap(null);
+
+            refmap.doc().set(
+                { polygon: gm.geometry.encoding.encodePath(o.getPath().getArray()) },
+                { merge: true }
+            );
+        });
+
+        mgr.addListener('markercomplete', e => {
+            let inside = [];
+            vm.polygons.forEach(p => inside.push(gm.geometry.poly.containsLocation(e.getPosition(), p)));
+            // let inside = gm.geometry.poly.containsLocation(e.getPosition(), poly);
+
+            console.log(inside);
+
+            if (!(inside.indexOf(true) >= 0)) {
+                e.setMap(null);
+                return;
+            }
+
+            // for (i = 0; i < inside.length; i++) {
+            //     console.log(inside[i]);
+            //     if (!inside[i]) {
+            //         e.setMap(null);
+            //         return;
+            //     }
+            // }
+
+            e.setMap(null);
+
+            let currentMarker = $('input[name="marker"]:checked').val();
+            let markertype = currentMarker;
+            if (currentMarker == "zombie2" || currentMarker == "zombie3") {
+                markertype = "zombie";
+            }
+            // TODO(3): Firebase --> INSERT
+            ref.doc().set({
+                position: e.getPosition().toJSON(),
+                name: `${currentMarker}`,
+                icon: `image/${currentMarker}.gif`,
+                type: `${markertype}`,
+                damage: '0',
+                heal: '0',
+                isKey: false,
+                isVisible: true,
+            });
+
+            e.pos = e.getPosition();
+
+
+        });
+
+        const info = new gm.InfoWindow({
+            content: $('#info')[0]
+
+        });
+
+        info.addListener('domready', e => {
+            // TODO(14): Focus on first input field
+            $('#name').focus();
+        });
+
+        const shopmenu = new gm.InfoWindow({
+            content: $('#shopmenu')[0]
+
+        });
+
+        info.addListener('domready', e => {
+            // TODO(14): Focus on first input field
+            $('#buydmg').focus();
+        });
+
+        function addMarker(id, data) {
+            let currentMarker = $('input[name="marker"]:checked').val();
+            let m = new gm.Marker({
+                map,
+                animation: gm.Animation.DROP,
+                draggable: true,
+                // TODO(6): Add options --> id, position, label and image
+                id,
+                position: data.position,
+                name: data.name,
+                icon: { url: data.icon, scaledSize: new gm.Size(48, 48) },
+                type: data.type,
+                damage: data.damage,
+                heal: data.heal,
+                iskey: data.isKey,
+                isVisible: data.isVisible,
+            });
+
+            vm.markers.push(m);
+
+            m.addListener('dblclick', e => {
+                // TODO(7): Firebase --> DELETE
+                ref.doc(m.id).delete();
+            });
+
+            //drag = less efficient
+            //dragend = efficient
+            //For high data frequency app --> realtime database
+
+            m.pos = m.getPosition();
+
+            m.addListener('drag', () => updateMarker(m));
+            m.addListener('dragend', () => updateMarker(m));
+
+            // m.addListener('dragend', e => {
+            //     // TODO(11): Firebase --> UPDATE
+            //     ref.doc(m.id).update({
+            //         position: e.latLng.toJSON()
+            //     });
+            // });
+
+            m.addListener('click', e => {
+                // TODO(13): Open info window --> fill id, lable and image
+                console.log(m.type);
+                if (m.type != "shop") {
+                    vm.id = m.id;
+                    vm.name = m.name;
+                    vm.damage = m.damage;
+                    vm.heal = m.heal;
+                    vm.isKey = m.isKey;
+                    info.open(map, m);
+                    switch (m.type) {
+                        case "treasure":
+                            $("#iskey").prop("disabled", false);
+                            $("#heal").prop("disabled", true);
+                            $("#damage").prop("disabled", true)
+                            break;
+                        case "zombie":
+                            $("#damage").prop("disabled", false);
+                            $("#heal").prop("disabled", true);
+                            $("#iskey").prop("disabled", true);
+                            break;
+                        case "health":
+                        case "love":
+                            $("#heal").prop("disabled", false);
+                            $("#damage").prop("disabled", true);
+                            $("#iskey").prop("disabled", true);
+                            break;
+                        default:
+                            $("#heal").prop("disabled", true);
+                            $("#damage").prop("disabled", true);
+                            $("#iskey").prop("disabled", true);
+                    }
+                }
+
+                else if (m.type == "shop") {
+                    shopmenu.open(map, m);
+                }
+
+            });
+        }
+
+        function addPolygon(id, data) {
+            let p = new gm.Polygon({
+                map,
+                draggable: false,
+                id,
+                path: gm.geometry.encoding.decodePath(data.polygon),
+                strokeColor: 'black',
+                fillColor: 'black'
+            });
+
+            vm.polygons.push(p);
+
+            p.addListener('click', e => {
+                vm.polygons.forEach(p => p.setEditable(false));
+                p.setOptions({
+                    draggable: true,
+                    editable: true
+                });
+            });
+
+            p.addListener('rightclick', e => {
+                if (e.vertex != undefined) {
+                    p.getPath().removeAt(e.vertex);
+
+                    refmap.doc(p.id).update({
+                        polygon: gm.geometry.encoding.encodePath(p.getPath().getArray())
+                    });
+                }
+            });
+
+            p.addListener('dragend', e => {
+                // TODO(11): Firebase --> UPDATE
+                refmap.doc(p.id).update({
+                    polygon: gm.geometry.encoding.encodePath(p.getPath().getArray())
+                });
+
+
+
+                // vm.markers.forEach(m => m.isInside = gm.geometry.poly.containsLocation(m.getPosition(), p));
+                // for (i = 0; i < vm.markers.length; i++) {
+                //     if (!(vm.markers[i].isInside)) {
+                //         ref.doc(vm.markers[i].id).delete();
+                //     }
+                // }
+            });
+
+            //refmap.doc(p.id).update({ polygon: gm.geometry.encoding.encodePath(p.getPath().getArray()) });
+
+            p.getPath().addListener('insert_at', e => refmap.doc(p.id).update({ polygon: gm.geometry.encoding.encodePath(p.getPath().getArray()) }));
+            p.getPath().addListener('set_at', e => refmap.doc(p.id).update({ polygon: gm.geometry.encoding.encodePath(p.getPath().getArray()) }));
+            p.getPath().addListener('remove_at', e => refmap.doc(p.id).update({ polygon: gm.geometry.encoding.encodePath(p.getPath().getArray()) }));
+        }
+
+        function updateMarker(m) {
+            let inside = [];
+            vm.polygons.forEach(p => inside.push(gm.geometry.poly.containsLocation(m.getPosition(), p)));
+
+
+            if ((inside.indexOf(true) >= 0)) {
+                m.pos = m.getPosition();
+                ref.doc(m.id).update({
+                    position: m.getPosition().toJSON()
+                });
+            }
+            else {
+                m.setPosition(m.pos);
+            }
+
+        }
+
+        function checkisInside() {
+            for (i = 0; i < vm.markers.length; i++) {
+                let inside = [];
+
+                vm.polygons.forEach(p => inside.push(gm.geometry.poly.containsLocation(vm.markers[i].getPosition(), p)));
+                if (!(inside.indexOf(true) >= 0)) {
+                    ref.doc(vm.markers[i].id).delete();
+                }
+            }
+        }
+
+        map.addListener('click', e => {
+            // TODO(10): Make all circles none editable
+            //           Reset color input
+            vm.polygons.forEach(o => o.setEditable(false));
+            info.close();
+        });
+    </script>
+</body>
+
+</html>

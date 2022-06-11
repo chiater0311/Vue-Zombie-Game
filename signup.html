@@ -1,0 +1,409 @@
+<template id="signup">
+    <div style=margin:auto; class="signup">
+        <h1 id="game_header" style="text-align: center;    margin-bottom: 15%;font-family: 'New Tegomin', serif; color: #AA1111;letter-spacing: 5px;">The Next Door</h1>
+        <div v-if="show" class="signin" style="width: 700px">
+            <h2 class="text-center" style="margin-bottom: 30px;font-family: 'New Tegomin', serif; color: rgb(156, 173, 188) !important;">Sign Up Your Game</h2>
+
+                <div style="width: 250px;display: inline-block;vertical-align: top;">
+                    <div class="form-group">
+                        <label for="email" class="lable_text">Username</label>
+                         <input v-model.trim='name' class="form-control" type="text" required v-focus>
+                         <span id="usererr" style="    color: red;" hidden>* Account Exists, Please Sign in.</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="password" class="lable_text">Password</label>
+                        <input v-model.trim="password" class="form-control" type="password" required/>
+                    </div>
+                    <div class="form-group">
+                        <label for="conpassword" class="lable_text">Confirm Password</label>
+                        <input v-model.trim="conpassword" class="form-control" type="password" required />
+                        <span id="passworderr" style="    color: red;" hidden>* Password not match.</span>
+                    </div>
+
+                     <!-- <a data-toggle="modal" data-target="#forgetPassword" class="btn pull-right" style="color: #878787;">Forgot Password ?</a> -->
+                <div style="text-align: center;">
+                    <button data-loading @click.prevent="validateUser" class="btn btn-default btn-login" disabled><a style="color: white; font-size: 24px; font-family:'New Tegomin', serif;text-decoration: none;">Sign Up</a></button>
+        
+                 </div>
+                <!-- <div style="width: 100%; text-align: center;"><a style=" color: #878787; font-size: 20px; line-height: 3;">Or</a></div>
+             -->
+             <div style="width: 100%; text-align: center;margin-top: 5%;"><a style=" color: #878787; font-size: 18px; line-height: 2;font-family:'New Tegomin', serif;" href="#/login">Have an account ? sign In</a></div>
+                </div>
+                <div style="width: 10px;display: inline-block;    height: 360px;border-left: 3px solid darkgray;width: 20px;margin-left: 20px;"></div>
+
+                <div style="    vertical-align: top;display: inline-block;width: 340px;">
+                    <label for="email" class="lable_text">User Photo</label>
+                    <div style="border-bottom: 3px solid grey;    margin-bottom: 10px;">
+                        <div style="justify-content: center;display: flex; padding-bottom: 15px;">
+                            <div class="character" style="overflow: hidden;border: 0px solid;" @click="$refs.fileInput.click()" >
+                                <img height="100px" width="100px" :src="photo || temp">
+                            </div>
+                            <input type="file" accept="image/*" @change="change" ref="fileInput"  style="display: none;" hidden>
+                        </div>
+                        <!-- <div style="justify-content: center;display: flex;margin-top: 10px;    margin-bottom: 10px;">
+                            <button class="btn btn-primary btn-photo" data-toggle="modal" data-target="#captureImage" style="    font-family:'New Tegomin', serif;">Take From Camera</button>
+                        </div> -->
+                       
+                    </div>
+
+
+
+                    <div class="form-group">
+                        <label class="lable_text">Character</label>
+                        <div style="justify-content: space-evenly;display: flex;margin-top: 10px;">
+                            <div class="character" id="girl1" @click.prevent="selectCharacter1" data-character="image/girl3.gif">
+                                <img height="90px" src="image/girl3.gif">
+                            </div>
+                            <div class="character" id="girl2" @click.prevent="selectCharacter2" data-character="image/girl2.gif">
+                                <img height="90px" src="image/girl2.gif">
+                            </div>
+                            <div class="character" id="girl3" @click.prevent="selectCharacter3" data-character="image/girl1.gif">
+                                <img height="85px" src="image/girl1.gif">
+                            </div>
+                        </div>
+                        <span id="charactererr" style="color: red;" hidden>* Select your character.</span>
+                    </div>
+                </div>
+
+        </div>
+
+        <div id="captureImage" class="modal fade" role="dialog">
+            <div class="modal-dialog">
+    
+                <!-- Modal content-->
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title" style=" text-align: center; font-size: 24px;">Capture Profile Image</h4>
+                    </div>
+                        <div class="modal-body" style="height: 350px;">
+                            <div style="    text-align: right;">
+                                <button class="btn btn-default" @click.prevent="openCam" style="margin-right: 15px;">
+                                    <span id="volume" class="material-icons">
+                                        videocam
+                                    </span>
+                                </button>
+                                <button class="btn btn-default" @click.prevent="stopCam" style="margin-right: 15px;">
+                                    <span id="volume" class="material-icons">
+                                        videocam_off
+                                    </span>
+                                </button>
+                            </div>
+                            <div style="height: 100%;position: fixed;">
+                                <video width="50%" height="50%" style=" border: 1px solid lightgrey;"></video>
+                                <div style="position: absolute; display: inline-block;padding: 15px;width: 50%;height: 50%;">
+                                    <div style="width: 100%;text-align: center;margin-bottom: 20px;"><a style="font-size: larger;text-decoration: none;color: black;">Preview</a></div>
+                                    <div style="width: 100%;overflow: hidden;height: 80%; display: inline-flex;border: 1px solid lighgrey;">
+                                        <img id="preview" src="image/no_picture.png"/>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                        </div>
+                        <div class="modal-footer">
+                           <div id="take" style="display: flex !important;justify-content: center;" >
+                            <button id="capture" class="btn btn-default" disabled>Capture</button>
+                           </div>
+                            <div id="ok" style="display: none !important;justify-content: space-evenly;">
+                                <button id="confirm" class="btn btn-default" @click.prevent="saveImg" >Confirm</button>
+                                <button type="button" class="btn btn-warning" @click.prevent="retake">Retake</button>
+                            </div>
+                        </div>
+                </div>
+    
+            </div>
+        </div>
+
+    
+   </div>
+   
+</template>
+
+<script>
+
+
+    window.blob = null;
+    function stopCam(){
+        const vid = document.querySelector('video');
+        vid.pause();
+        vid.src = "";
+        localstream.getTracks()[0].stop();
+    }
+
+    function startCam(){
+        const vid = document.querySelector('video');
+        navigator.mediaDevices.getUserMedia({video: true}) // request cam
+            .then(stream => {
+                vid.srcObject = stream; // don't use createObjectURL(MediaStream)
+                return vid.play(); // returns a Promise
+            })
+            .then(()=>{ // enable the button
+                const btn = document.querySelector('#capture');
+                btn.disabled = false;
+                btn.onclick = e => {
+                    takeASnap()
+                    .then(download);
+            };
+        });
+    }
+
+    function takeASnap(){
+        const vid = document.querySelector('video');
+        const canvas = document.createElement('canvas'); // create a canvas
+        const ctx = canvas.getContext('2d'); // get its context
+        canvas.width = vid.videoWidth; // set its size to the one of the video
+        canvas.height = vid.videoHeight;
+        ctx.drawImage(vid, 0,0); // the video
+        return new Promise((res, rej)=>{
+            canvas.toBlob(res, 'image/jpeg'); // request a Blob from the canvas
+        });
+    }
+    function download(blob){
+        console.log(blob);
+        window.blob = blob;
+        app.blob = blob;
+        // console.log(app.blob);
+        // upload();
+        p = URL.createObjectURL(blob);
+        $("#preview").attr("src", p);
+
+        $("#take").hide();
+        $("#ok").css("display","flex");
+
+        // uses the <a download> to download a Blob
+        // let a = document.createElement('a'); 
+        // a.href = URL.createObjectURL(blob);
+        // a.download = 'screenshot.jpg';
+        // document.body.appendChild(a);
+        // a.click();
+    }
+    function preview(blob){
+        console.log(blob);
+        $("#preview").attr("src", blob);
+        // uses the <a download> to download a Blob
+        let a = document.createElement('a'); 
+        a.href = URL.createObjectURL(blob);
+        a.download = 'screenshot.jpg';
+        document.body.appendChild(a);
+        a.click();
+    }
+    
+
+    Vue.component('signup', {
+        template: '#signup',
+        data: () => ({ 
+            blob:null,
+            show:true,
+            password:"",
+            name : '',
+            photo: '',
+            character:"",
+            temp : 'image/profile_image.jpeg'
+        }),
+        methods: {
+            change(e) {
+                // TODO: Crop image --> load data URL as preview
+                let f = e.target.files[0]
+
+                crop(f,200,200,'dataURL','image/webp')
+                    .then(dataURL => this.photo = dataURL)
+                    .catch(err => this.photo = e.target.value="");
+                
+            },
+            validateUser() {
+                var w = false;
+
+                ref.where("username", "==", this.name)
+                    .get()
+                    .then((querySnapshot) => {
+                        
+                        // console.log(querySnapshot);
+                        if(querySnapshot.size > 0)
+                        {
+                            $("#usererr").show();
+                            w = false;
+                            // return w; 
+                            
+                        }else{
+                            $("#usererr").hide();
+                            w = true;
+                            // return w; 
+                            this.signup();
+                        }
+                      
+                    })
+
+                return w; 
+
+                
+            },
+            validatePassword(){
+                    let f = this.password;
+                    let c = this.conpassword
+                    if(f != c){
+                        $("#passworderr").show();
+                        return false;
+                    }else{
+                        $("#passworderr").hide();
+                        return true;
+                    }
+
+            },
+            validateCharacter(){
+                if(!this.character)
+                {
+                    $("#charactererr").show();
+                    return false;
+                }else{
+                    $("#characterderr").show();
+                    return true;
+                }
+            },
+            signup() { 
+                // TODO: Insert record
+                new Audio(button).play();
+                    
+                let v = this.validatePassword();
+                let s = this.validateCharacter();
+                // let l = this.validateUser();
+
+                // alert("v :" + v);
+                // alert("s :" + s);
+                // alert("p :" + l);
+
+                if((v == true) && (s == true))
+                {
+
+                    if(window.blob == null){
+
+                        let img = this.photo;
+
+                        if(!img)
+                        {
+                            img = this.temp;
+                        }
+                        ref.doc().set({
+                            // email: this.email,
+                            username:this.name,
+                            character:this.character,
+                            photo:img,
+                            password:this.password,
+                            role:"user",
+                        }).then(()=> location = "#/login");
+
+                    }else{
+
+                        let name = Date.now() + '.jpg';
+                        real_ref.child(name)
+                            .put(blob)
+                            .then(snap => {
+                                this.photo = name;
+                                console.log(this.photo);
+                                // this.uploading = false;
+                                let message =`Image Saved as <b>${snap.metadata.name}</b> (${snap.metadata.size} bytes)`;
+                                console.log(message);
+
+                                let img = this.photo;
+
+                                if(!img)
+                                {
+                                    img = this.temp;
+                                }
+                                ref.doc().set({
+                                    // email: this.email,
+                                    username:this.name,
+                                    character:this.character,
+                                    photo:img,
+                                    password:this.password,
+                                    role:"user",
+                                }).then(()=> location = "#/login");
+                            });
+
+                    }
+                }
+                
+            },
+            selectCharacter1(){
+                let url = $("#girl1").attr("data-character");
+                $(".character").removeClass("character_border");
+                $("#girl1").addClass("character_border");
+                this.character = url;
+                $("#charactererr").hide();
+            },
+            selectCharacter2(){
+                let url = $("#girl2").attr("data-character") 
+                $(".character").removeClass("character_border");
+                $("#girl2").addClass("character_border");
+                this.character = url;
+                $("#charactererr").hide();
+            },
+            selectCharacter3(){
+                let url = $("#girl3").attr("data-character") 
+                $(".character").removeClass("character_border");
+                $("#girl3").addClass("character_border");
+                this.character = url;
+                $("#charactererr").hide();
+            },
+            clickImg() {
+                alert("HI");
+                const elem = this.$refs.fileInput.$el.click()
+                elem.click();
+            },
+            saveImg(){
+                // console.log(window.blob);
+                // let v = $("#preview").attr('src');
+                let v = window.blob;
+                crop(v,200,200,'dataURL','image/webp')
+                    .then(dataURL => this.photo = dataURL);
+
+                $("#preview").attr("src","image/no_picture.png");
+
+                const vid = document.querySelector('video');
+                vid.stop();
+                vid.src = "";
+                localstream.getTracks()[0].stop();
+                    
+            },
+            openCam(){
+                // startCam();
+                navigator.mediaDevices.getUserMedia({video: true}).then(function(stream){
+                    result = stream.getVideoTracks().some(function (track) {
+                                return track.enabled && track.readyState === 'live';
+                            });
+                    if(result){
+                        // alert("On");
+                        startCam();
+                    }else{
+                        // alert("Off");
+                        stopCam();
+                    }
+
+                }).catch(function(err) { console.log(err.name + ": " + err.message); });
+                     
+            },
+            stopCam(){
+
+
+                const vid = document.querySelector('video');
+                navigator.mediaDevices.getUserMedia({video: true}) // request cam
+                    .then(streamx => {
+                        vid.srcObject = streamx; // don't use createObjectURL(MediaStream)
+                        const streama = streamx;
+                        const tracks = streama.getTracks();
+                        tracks[0].stop;
+                        vid.pause();
+                        vid.src = "";
+                    });
+
+            },
+            retake(){
+                $("#take").show();
+                $("#ok").hide();
+            }
+        },
+        // Life-cycle methods
+        created() {
+            document.title = 'The Next Door - Sign Up';
+        }
+    });
+</script>

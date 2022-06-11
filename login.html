@@ -1,0 +1,144 @@
+<template id="login">
+    <div id="login_panel" style=margin:auto; class="login">
+        <h1 id="game_header" style="text-align: center;    margin-bottom: 15%;font-family: 'New Tegomin', serif; color: #AA1111;letter-spacing: 5px;">The Next Door</h1>
+        <div v-if="show" class="signin" style="">
+            <h2 class="text-center" style="margin-bottom: 50px; font-family: 'New Tegomin',serif;    color: #9CADBC;;text-decoration: none;">Sign In Your Game</h2>
+
+                <div class="form-group">
+                    <label for="name" style="font-family: 'New Tegomin', serif;    color: #9CADBC;">Username</label>
+                     <input v-model.trim='name' class="form-control" type="text" @input='validateUser' v-focus ref="name" value="eee" placeholder="eee">
+                            <span id="loginerr" style="color: red;" hidden>* Account not exists.Please sign up.</span>
+                </div>
+                <div class="form-group">
+                    <label for="password" style="font-family: 'New Tegomin', serif;    color: #9CADBC;">Password</label>
+                    <input v-model.trim="password" class="form-control" type="password" value="kengboon1109" placeholder="kengboon1109"/>
+                    <span id="passerr" style="color: red;" hidden>* Password not correct.</span>
+                </div>
+
+                <!-- <a data-toggle="modal" data-target="#forgetPassword" class="btn pull-right" style="color: #878787;">Forgot Password ?</a> -->
+                <div style="text-align:center">
+                    <button data-loading @click.prevent="login" class="btn btn-default btn-login"><a style="    color: #9CADBC;font-size: 24px;font-family: 'New Tegomin', serif;text-decoration: none;">Sign In</a></button>
+                </div>
+            <!-- <div style="width: 100%; text-align: center;"><a style=" color: #878787; font-size: 20px; line-height: 3;">Or</a></div>
+         -->
+            <div style="width: 100%; text-align: center;margin-top: 5%;"><a style="    font-family: 'New Tegomin', serif;     color: #9CADBC; font-size: 18px; line-height: 2;" href="#/signup">Don't have an account ?</a></div>
+        </div>
+
+    
+   </div>
+</template>
+
+<script>
+    Vue.component('login', {
+        template: '#login',
+        data: () => ({ 
+            show:true,
+            name : '',
+            phone: '',
+            photo: '',
+            temp : 'image/photo.png'
+        }),
+        methods: {
+            login(){
+                    // new Audio(button).play();
+                    
+
+                    ref.where("username", "==", this.name)
+                    .get()
+                    .then((querySnapshot) => {
+                        
+                        if(querySnapshot.size > 0)
+                        {
+                            querySnapshot.forEach((doc) => {
+                            // doc.data() is never undefined for query doc snapshots
+                            console.log(doc.id, " => ", doc.data());
+                            $("#loginerr").hide();
+
+                            let password = doc.data().password;
+
+                            if(password == this.password)
+                            {
+                                $("#passerr").hide();
+
+                                if(doc.data().role == "user")
+                                {
+                                    // location="loading.html";
+                                    $("#login_panel").hide();
+                                    $('#main').removeClass('landing')
+                                    $('#main').addClass('loading2')
+                                    sessionStorage.setItem("id",doc.id);
+                                    window.setTimeout(function() {
+                                        let id = sessionStorage.getItem("id");
+                                        window.location.href = 'game.html?id='+id;
+                                    }, 3000);
+                                    // alert(doc.id);
+                                }else{
+                                    location="admin_panel.html";
+                                }
+                               
+                            }else{
+                                $("#passerr").show();
+                            }
+                           
+                            });
+                            
+                        }else{
+                            $("#loginerr").show();
+                            // alert("Account Not Exists");
+                        }
+                      
+                    })
+                    .catch((error) => {
+                        console.log("Error getting documents: ", error);
+                    });
+                   
+                },
+                validateEmail(e) {
+                    let el = e.target;
+                    let email= el.value;
+
+                    el.setCustomValidity('');
+                    if(el.validity.valid){
+                        alert("hu");
+                        let s = this.$root.users.find(s => s.email == email);
+                        if(s)
+                        {
+                            alert("Exists User, Please Login.");
+                            el.setCustomValidity('Exists User, Please Login.');
+                        }else{
+                            alert("No");
+                        }
+                    }
+                },
+                
+        },
+        // Life-cycle methods
+        created() {
+            document.title = 'The Next Door - Sign In';
+        }
+    });
+</script>
+
+<style>
+
+.loading{
+            background-color: black;
+            background-image: url(/thenextdoor.github.io/image/loading.jpeg);
+            /* background-image: url("/Users/kengboongoh/Sites/thenextdoor.github.io/image/loading.gif"); */
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-size: cover;
+            width: 100%;
+}
+.loading2 {
+        background-color: black;
+        /* background-image: url("/Users/kengboongoh/Sites/thenextdoor.github.io/image/loading.gif"); */
+        background-image: url(/thenextdoor.github.io/image/loading.gif);
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        background-size: contain;
+        width: 100%;
+        
+}
+
+</style>

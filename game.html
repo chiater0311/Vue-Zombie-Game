@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Trirong">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=New+Tegomin&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons"rel="stylesheet">
+    <link rel="stylesheet" href="css/app.css">
+    <title>The Next Door : Home</title>
+    <link href="image/zombie_icon.png" rel="shortcut icon">
+    <style> 
+        /* main {
+            display: grid;
+            gap: 10px;
+            grid-template-columns: 350px 1fr;
+        } */
+
+        #map {
+            border: 1px solid #333;
+        }
+
+
+        /* Adding cursor just works: */
+        .disabled {
+            cursor: not-allowed;
+        }
+
+        /* Makes link non-clickable: */
+        .disabled:active {
+            pointer-events: none;
+            text-decoration: none;
+        }
+
+        .disabled:focus{
+            text-decoration: none;
+            color: #AA1111;
+        }
+
+        
+
+        
+    </style>
+</head>
+<body class="landing2" style="grid-template-rows: auto auto 1fr auto;">
+
+    <!-- Vue -->
+    <main id="app" v-cloak>
+        <!-- <div id="map"></div> -->
+        <div class="fadePage" style="width:50%;margin:15%">
+            <h1 class="game_title" style="font-size: 5vw;font-family: 'New Tegomin', serif;    color: #AA1111;letter-spacing: 5px;background:none;    padding-bottom: 10px;    text-shadow: 1px 1px darkred;">The Next Door</h1>
+            <div style="display: grid;">
+                <a id="continue" class="option" v-bind:href="'start_game.html?id='+id+'&game=continue'" disabled>Continue Game</a>
+                <a class="option" v-bind:href="'start_game.html?id='+id+'&game=new'">New Game</a>
+                <a class="option" href="index.html">Exit</a>
+            </div>
+        </div>
+    </main>
+
+    <!-- TODO(1): Add drawing library -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=&libraries=drawing"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.17.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.17.1/firebase-firestore.js"></script>
+    <script src="js/jquery.slim.js"></script>
+    <script src="js/vue.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+
+        // TODO: Setup firebase and vuefire -----------------------------------
+        firebase.initializeApp({
+            projectId:'ass-demo-e3da7'
+        });
+        
+        const db = firebase.firestore();
+        const user_ref = db.collection('users');
+        const game_ref = db.collection('game');
+
+
+        const vm = new Vue({
+            el: '#app',
+            data: {
+                id:'',
+                user:[],
+            },
+            methods: {
+              
+            },
+            mounted() {
+                Authentication();
+            }
+            
+        });
+        
+        function Authentication(){
+            let id = new URL(location).searchParams.get('id');
+
+            if(!id){
+                location="index.html";
+            }
+            let user = user_ref.doc(id);
+
+            user.get().then((doc) => {
+                if (doc.exists) {
+                    console.log("Document data:", doc.data());
+                    
+                    vm.user = doc.data();
+                    vm.id = id;
+
+                    game_ref.where("user_id", "==", id).get()
+                        .then(function(querySnapshot) {
+                            if(querySnapshot.size > 0)
+                            {
+                                $("#continue").removeClass("disabled")
+                            }else{
+                                $("#continue").addClass("disabled")
+                            }
+                        });
+                    } 
+                else {
+
+                    location="index.html";
+                }
+            }).catch((error) => {
+                console.log("Error getting document:", error);
+            });
+
+        }
+        
+    </script>
+
+    <style>
+        @media only screen and (max-width: 600px) {
+            .game_title{
+                font-size: x-large !important;
+            }
+
+            .option{
+                font-size: medium !important;
+            }
+
+            .fadePage{
+                padding-top: 25% !important;
+                margin: 5% !important;
+                width: fit-content !important;
+            }
+        }
+    </style>
+</body>
+</html>

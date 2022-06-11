@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport"
+		content="width=device-width, initial-scale=1.0" />
+	<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+	<title>Loading...</title>
+    <link href="image/zombie_icon.png" rel="shortcut icon">
+</head>
+
+<body class="landing2 fadePage">
+</body>
+
+<script>
+    window.setTimeout(function() {
+        let id = sessionStorage.getItem("id");
+
+        window.location.href = 'game.html?id='+id;
+    }, 5000);
+</script>
+<style>
+    .landing2 {
+        background-color: black;
+        background-image: url(/thenextdoor.github.io/image/loading.gif);
+        background-repeat: no-repeat;
+        /* background-attachment: fixed; */
+        background-size: cover;
+        width: 100%;
+        /* flex: 1 1 auto;
+        padding: 10px;
+        overflow: auto; */
+    }
+</style>
+
+</html>
